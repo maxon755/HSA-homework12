@@ -18,12 +18,14 @@ services:
       args:
         - USER_UID=${USER_UID:-1000}
         - USER_GID=${USER_GID:-1000}
+    environment:
+      PHP_IDE_CONFIG: "serverName=docker"
     volumes:
       - .:/var/www/html
+      - .docker/services/php/config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
 
   redis:
     image: redis:latest
-    container_name: redis_instance
     volumes:
       - ./.docker/services/redis:/usr/local/etc/redis
     ports:
