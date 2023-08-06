@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  web-server:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./public:/usr/share/nginx/html
+      - .docker/services/nginx/config/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: .docker/services/php/Dockerfile
+      args:
+        - USER_UID=${USER_UID:-1000}
+        - USER_GID=${USER_GID:-1000}
+    volumes:
+      - .:/var/www/html
+
+  redis:
+    image: redis:latest
+    container_name: redis_instance
+    volumes:
+      - ./.docker/services/redis:/usr/local/etc/redis
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
