@@ -21,7 +21,7 @@ class CachedService
         $value = $this->redisClient->get($key);
 
         if ($value === false) {
-            $value = $this->heavyComputedJob();
+            $value = $this->heavyComputationJob();
 
             $this->redisClient->setex($key, $ttl, $value);
         }
@@ -29,11 +29,48 @@ class CachedService
         return (int) $value;
     }
 
-    private function heavyComputedJob(): int
+    public function getProbabilisticCachedValue(string $key, int $ttl = 10): int
     {
-        $this->logger->info("Heavy computed job was started");
+        $cachedData = $this->redisClient->hgetall($key);
+        $value = $cachedData['value'] ?? null;
+        $computationTime = $cachedData['computationTime'] ?? null;
+        $expiry = $cachedData['expiry'] ?? null;
 
-        sleep(5);
+        if (!$value || ((($timeDelta = ($expiry - time())) < 3  * $computationTime) * (($prob = rand(0, 100)) > 95))) {
+
+            if (!$value) {
+                $this->logger->info("VALUE_NOT_FOUND");
+            } else {
+                $this->logger->info("PROBABILISTIC_COMPUTATION", [
+                    'expiry' => $expiry,
+                    'computation_time' => $computationTime,
+                    'timeDelta' => $timeDelta,
+                    'prob' => $prob,
+                ]);
+            }
+
+            $start = time();
+            $value = $this->heavyComputationJob();
+            $computationTime = time() - $start;
+            $expiry = time() + $ttl;
+
+            $this->redisClient->hmset($key, array(
+                'value' => $value,
+                'computationTime' => $computationTime,
+                'expiry' => $expiry,
+            ));
+
+            $this->redisClient->expireat($key, $expiry);
+        }
+
+        return (int)$value;
+    }
+
+    private function heavyComputationJob(): int
+    {
+        $this->logger->info("Heavy computation job was started");
+
+        sleep(3);
 
         return random_int(0, 99);
     }
