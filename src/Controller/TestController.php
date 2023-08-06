@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Redis;
+use App\CachedService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,15 +14,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class TestController extends AbstractController
 {
 
-    public function __construct(private readonly Redis $redisClient)
+    public function __construct(private readonly CachedService $cachedService)
     {
     }
 
     #[Route('/test', name: 'test')]
-    public function new(Request $request): Response
+    public function test(Request $request): Response
     {
-//        $this->redisClient->get();
+        $value = $this->cachedService->getClassicallyCachedValue('classically_cached_value');
 
-        return new Response();
+        return new Response(
+            "Classically cached value: {$value}"
+        );
     }
 }
