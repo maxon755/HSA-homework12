@@ -29,22 +29,21 @@ class CachedService
         return (int) $value;
     }
 
-    public function getProbabilisticCachedValue(string $key, int $ttl = 10): int
+    public function getProbabilisticCachedValue(string $key, int $ttl = 10, $beta = 1): int
     {
         $cachedData = $this->redisClient->hgetall($key);
         $value = $cachedData['value'] ?? null;
         $computationTime = $cachedData['computationTime'] ?? null;
         $expiry = $cachedData['expiry'] ?? null;
 
-        if (!$value || ((($timeDelta = ($expiry - time())) < 3  * $computationTime) * (($prob = rand(0, 100)) > 95))) {
+
+        if (!$value || (time() - $computationTime * $beta * $prob = log($this->randomFloat())) >= $expiry) {
 
             if (!$value) {
                 $this->logger->info("VALUE_NOT_FOUND");
             } else {
                 $this->logger->info("PROBABILISTIC_COMPUTATION", [
-                    'expiry' => $expiry,
-                    'computation_time' => $computationTime,
-                    'timeDelta' => $timeDelta,
+                    'expiry' =>  gmdate("Y-m-d\TH:i:s\Z", (int)$expiry),
                     'prob' => $prob,
                 ]);
             }
@@ -65,6 +64,11 @@ class CachedService
 
         return (int)$value;
     }
+
+    function randomFloat($min = 0, $max = 1) {
+        return $min + mt_rand() / mt_getrandmax() * ($max - $min);
+    }
+
 
     private function heavyComputationJob(): int
     {
