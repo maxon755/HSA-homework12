@@ -9,5 +9,11 @@ snc_redis:
         default:
             type: phpredis
             alias: default
-            dsn: "%env(REDIS_URL)%"
+            dsn:
+                - redis://redis-sentinel:26379
+            options:
+                replication: sentinel
+                service: mymaster
+                parameters:
+                    database: 1
             logging: false

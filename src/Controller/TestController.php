@@ -31,7 +31,7 @@ class TestController extends AbstractController
     #[Route('/test-prob', name: 'test-prob')]
     public function testProb(Request $request): Response
     {
-        $value = $this->cachedService->getProbabilisticCachedValue('probabilistic_cached_value', 10);
+        $value = $this->cachedService->getProbabilisticCachedValue('probabilistic_cached_value');
 
         return new Response(
             "Classically cached value: {$value}"
