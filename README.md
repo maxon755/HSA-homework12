@@ -7,12 +7,15 @@ The goals of the project:
 1. Build redis cluster with redis sentinel.
 2. Implement probabilistic caching to avoid [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede)
 
+### Architecture
+![](assets/architecture.png)
+
 ### Setup
 
-Copy sentinel initial config
+Run setup script
 
 ```bash
-cp .docker/services/sentinel/sentinel.conf.dist .docker/services/sentinel/sentinel.conf
+./setup
 ```
 
 ### Benchmark Commands
@@ -72,3 +75,10 @@ Probabilistic caching:
 | Shortest transaction        | 0.05            |
 | **Heavy task computations** | **70**          |
 | **Cache stampedes**         | **1**           |
+
+> The one cache stampede was present only on startup
+
+### Conclusion
+The probabilistic caching technique allows decrease number of cache stampedes
+(or even avoid them with cache warmup), but also decreases transaction rate
+and increases the number of cache re-computation.
