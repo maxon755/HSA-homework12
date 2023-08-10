@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONCURRENCY="${1:-50}"
+CONCURRENCY="${1:-10}"
 TIME="${2:-30}"
 
 docker run --rm -t --network host \
