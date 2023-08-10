@@ -39,46 +39,26 @@ Execution Time: 30s
 Computation time: 3s
 > Computation time is execution time of the function which result we want to cache
 
-Classical caching:
-
-| Parameter                   | Value           |
-|-----------------------------|-----------------|
-| Transactions                | 2165 hits       |
-| Availability                | 100.00 %        |
-| Elapsed time                | 29.15 secs      |
-| Data transferred            | 0.06 MB         |
-| Response time               | 0.12 secs       |
-| Transaction rate            | 74.27 trans/sec |
-| Concurrency                 | 8.97            |
-| Successful transactions     | 2165            |
-| Failed transactions         | 0               |
-| Longest transaction         | 3.13            |
-| Shortest transaction        | 0.06            |
-| **Heavy task computations** | **30**          |
-| **Cache stampedes**         | **3**           |
-
-Probabilistic caching:
-
-| Parameter                   | Value           |
-|-----------------------------|-----------------|
-| Transactions                | 1399 hits       |
-| Availability                | 100.00 %        |
-| Elapsed time                | 29.95 secs      |
-| Data transferred            | 0.04 MB         |
-| Response time               | 0.20 secs       |
-| Transaction rate            | 46.71 trans/sec |
-| Throughput                  | 0.00 MB/sec     |
-| Concurrency                 | 9.48            |
-| Successful transactions     | 1399            |
-| Failed transactions         | 0               |
-| Longest transaction         | 3.10            |
-| Shortest transaction        | 0.05            |
-| **Heavy task computations** | **70**          |
-| **Cache stampedes**         | **1**           |
+| Parameter                   | Classical caching | Probabilistic caching |
+|-----------------------------|-------------------|-----------------------|
+| Transactions                | 2165 hits         | 2799 hits             |
+| Availability                | 100.00 %          | 100.00 %              |
+| Elapsed time                | 29.15 secs        | 29.69 secs            |
+| Data transferred            | 0.06 MB           | 0.07 MB               |
+| Response time               | 0.12 secs         | 0.11 secs             |
+| Transaction rate            | 74.27 trans/sec   | 94.27 trans/sec       |
+| Concurrency                 | 8.97              | 9.93                  |
+| Successful transactions     | 2165              | 2799                  |
+| Failed transactions         | 0                 | 0                     |
+| Longest transaction         | 3.13              | 3.12                  |
+| Shortest transaction        | 0.06              | 0.06                  |
+| **Heavy task computations** | **30**            | **19**                |
+| **Cache stampedes**         | **3**             | **1**                 |
 
 > The one cache stampede was present only on startup
 
 ### Conclusion
-The probabilistic caching technique allows decrease number of cache stampedes
-(or even avoid them with cache warmup), but also decreases transaction rate
-and increases the number of cache re-computation.
+The probabilistic caching technique allows:
+* decrease number of cache stampedes (or even avoid them with cache warmup).
+* decrease number of cache re-computation.
+* increase transaction rate

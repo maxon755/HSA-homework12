@@ -12,8 +12,7 @@ class CachedService
     public function __construct(
         private readonly Redis $redisClient,
         private readonly LoggerInterface $logger
-    )
-    {
+    ) {
     }
 
     public function getClassicallyCachedValue(string $key, int $ttl = 10): int
@@ -26,26 +25,25 @@ class CachedService
             $this->redisClient->setex($key, $ttl, $value);
         }
 
-        return (int) $value;
+        return (int)$value;
     }
 
-    public function getProbabilisticCachedValue(string $key, int $ttl = 10, $beta = 1): int
+    public function getProbabilisticCachedValue(string $key, int $ttl = 10, float $beta = 1): int
     {
         $cachedData = $this->redisClient->hgetall($key);
-        $value = $cachedData['value'] ?? null;
-        $computationTime = $cachedData['computationTime'] ?? null;
-        $expiry = $cachedData['expiry'] ?? null;
+
+        $value = isset($cachedData['value']) ? (int)$cachedData['value'] : null;
+        $computationTime = isset($cachedData['computationTime']) ? (int)$cachedData['computationTime'] : null;
+        $expiry = isset($cachedData['expiry']) ? (int)$cachedData['expiry'] : null;
 
 
-        if (!$value || (time() - $computationTime * $beta * $prob = log($this->randomFloat())) >= $expiry) {
-
+        if (!$value || $this->shouldRecompute($expiry, $computationTime, $beta)) {
             if (!$value) {
                 $this->logger->info("VALUE_NOT_FOUND");
             } else {
-                $this->logger->info("PROBABILISTIC_COMPUTATION", [
-                    'expiry' =>  gmdate("Y-m-d\TH:i:s\Z", (int)$expiry),
-                    'prob' => $prob,
-                ]);
+                $this->logger->info("PROBABILISTIC_COMPUTATION");
+
+                $this->redisClient->setex('probabilistic_computation_in_progress', 60, true,);
             }
 
             $start = time();
@@ -53,19 +51,33 @@ class CachedService
             $computationTime = time() - $start;
             $expiry = time() + $ttl;
 
-            $this->redisClient->hmset($key, array(
+            $this->redisClient->hmset($key, [
                 'value' => $value,
                 'computationTime' => $computationTime,
                 'expiry' => $expiry,
-            ));
+            ]);
 
             $this->redisClient->expireat($key, $expiry);
+
+            $this->redisClient->setex('probabilistic_computation_in_progress', 60, false);
         }
 
-        return (int)$value;
+        return $value;
     }
 
-    function randomFloat($min = 0, $max = 1) {
+    private function shouldRecompute(int $expiry, float $computationTime, float $beta = 1): bool
+    {
+        $p = $this->redisClient->get('probabilistic_computation_in_progress');
+
+        if ($p) {
+            return false;
+        }
+
+        return (time() - $computationTime * $beta * log($this->randomFloat()) >= $expiry);
+    }
+
+    function randomFloat($min = 0, $max = 1)
+    {
         return $min + mt_rand() / mt_getrandmax() * ($max - $min);
     }
 

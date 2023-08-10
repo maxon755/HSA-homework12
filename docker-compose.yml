@@ -21,7 +21,7 @@ services:
         - USER_UID=${USER_UID:-1000}
         - USER_GID=${USER_GID:-1000}
     environment:
-      PHP_IDE_CONFIG: "serverName=docker"
+      PHP_IDE_CONFIG: "serverName=hsa-12"
     volumes:
       - .:/var/www/html
       - .docker/services/php/config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
